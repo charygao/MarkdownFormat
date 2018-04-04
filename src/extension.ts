@@ -44,19 +44,19 @@ class DocumentFormatter {
       // 按照每行进行搞定
       editor.edit((editorBuilder: vscode.TextEditorEdit) => {
         let content = doc.getText(this.current_document_range(doc));
+        let lines = [];
         // 全局替换
         content = this.replaceFullNums(content);
         content = this.replaceFullChars(content);
 
         let tag = true;
         // 每行操作
-        content = content.split("\n").map((line: string) => {
+        lines = content.split("\n").map((line: string) => {
+          line = line.replace(/(.*)[\r\n]$/g, "$1");
           // 忽略代码块
           if (line.trim().search("```") === 0) {
             tag = !tag;
           } else if (tag) {
-            // 标题前后加入空行
-            line = line.trim().replace(/(^#{1,6}.*)/, "\r\n$1\r\n");
             // 修复 markdown 链接所使用的标点。
             line = line.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
             line = line.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
@@ -67,17 +67,33 @@ class DocumentFormatter {
               // 汉字与其前后的英文字符、英文标点、数字间增加空白。
               line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
               line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
+              // 标题前后加入空行
+              line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n\n");
             }
           }
           return line;
-        }).join("\n");
-        // 删除空行
-        content = this.condenseContent(content);
+        });
+        let i = 1;
+        content = "";
+        lines.forEach(line => {
+          if (line.trim().length === 0) {
+            i += 1;
+          } else {
+            i = 0;
+          }
+          if (i <= 1) {
+            if (line.trim().length === 0) {
+              content += line.replace(/(.*)[\r\n]$/g, "$1")
+            } else {
+              content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
+            }
+          }
+        });
         editorBuilder.replace(this.current_document_range(doc), content);
       });
-    } else {
     }
   }
+
   protected current_document_range(doc: vscode.TextDocument) {
     // 当前文档范围
     let start = new vscode.Position(0, 0);
@@ -85,13 +101,7 @@ class DocumentFormatter {
     let range = new vscode.Range(start, end);
     return range;
   }
-  protected condenseContent(content: string) {
-    // 压缩内容
-    content = content.trim();
-    content = content.replace(/^(.*)(\r?\n\1)+$/gm, "$1");
-    content = content + "\n";
-    return content;
-  }
+
   protected replacePunctuations(content: string) {
     // 汉字后的标点符号，转成全角符号。
     content = content.replace(/([\u4e00-\u9fa5\u3040-\u30FF])\.($|\s*)/g, '$1。');
@@ -185,7 +195,6 @@ class DocumentFormatter {
     content = content.replace("ｘ", "x");
     content = content.replace("ｙ", "y");
     content = content.replace("ｚ", "z");
-
 
     content = content.replace("＠", "@");
     return content;
