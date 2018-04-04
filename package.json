@@ -1,36 +1,56 @@
 {
-    "name": "writing4cn",
-    "displayName": "writing4cn",
-    "description": "为什么你们就不能格式化一下你们的 Markdown 呢",
-    "version": "0.0.2",
-    "publisher": "twocucao",
-    "engines": {
-        "vscode": "^1.11.0"
-    },
-    "categories": [
-        "Other"
+  "name": "markdownformat",
+  "displayName": "MarkdownFormat",
+  "description": "MarkdownFormat",
+  "version": "0.0.1",
+  "publisher": "liushilive",
+  "engines": {
+    "vscode": "^1.21.0"
+  },
+  "categories": [
+    "Languages",
+    "Formatters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.reFormat",
+        "title": "MarkdownFormat : 格式化MD"
+      }
     ],
-    "activationEvents": [
-        "onCommand:extension.reformatSelection4cn"
-    ],
-    "main": "./out/src/extension",
-    "contributes": {
-        "commands": [{
-            "command": "extension.reformatSelection4cn",
-            "title": "Writing4CN : Pangu Reformat"
-        }]
+    "menus": {
+      "editor/context": [
+        {
+          "command": "extension.reFormat",
+          "when": "editorLangId == markdown",
+          "group": "navigation"
+        }
+      ]
     },
-    "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
-    }
+    "configuration": [
+      {
+        "title": "",
+        "properties": {}
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.6.1",
+    "vscode": "^1.1.6",
+    "tslint": "^5.8.0",
+    "@types/node": "^7.0.43",
+    "@types/mocha": "^2.2.42"
+  }
 }
