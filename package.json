@@ -1,8 +1,8 @@
 {
   "name": "markdownformat",
   "displayName": "MarkdownFormat",
-  "description": "MarkdownFormat",
-  "version": "0.0.1",
+  "description": "MD格式化-我自己用的，还不是很稳定哦！",
+  "version": "0.0.4",
   "publisher": "liushilive",
   "engines": {
     "vscode": "^1.21.0"
@@ -15,7 +15,7 @@
   "activationEvents": [
     "onLanguage:markdown"
   ],
-  "main": "./out/src/extension",
+  "main": "./extension",
   "contributes": {
     "commands": [
       {
@@ -31,26 +31,21 @@
           "group": "navigation"
         }
       ]
-    },
-    "configuration": [
-      {
-        "title": "",
-        "properties": {}
-      }
-    ]
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
     "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
     "typescript": "^2.6.1",
     "vscode": "^1.1.6",
-    "tslint": "^5.8.0",
+    "eslint": "^4.11.0",
     "@types/node": "^7.0.43",
     "@types/mocha": "^2.2.42"
+  },
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/liushilive/MarkdownFormat"
   }
 }

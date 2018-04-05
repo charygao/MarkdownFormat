@@ -1,15 +1,14 @@
-'use strict';
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+const vscode = require('vscode');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+function activate(context) {
 
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "markdownformat" is now active!');
+  console.log('Congratulations, your extension "MarkdownFormat" is now active!');
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with  registerCommand
@@ -23,13 +22,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable);
 }
+exports.activate = activate;
 
 // this method is called when your extension is deactivated
-export function deactivate() {
+function deactivate() {
 }
+exports.deactivate = deactivate;
 
 class DocumentFormatter {
-  public updateDocument() {
+  updateDocument() {
     let editor = vscode.window.activeTextEditor;
     if (editor === undefined) {
       return;
@@ -42,21 +43,27 @@ class DocumentFormatter {
         return;
       }
       // 按照每行进行搞定
-      editor.edit((editorBuilder: vscode.TextEditorEdit) => {
+      editor.edit((editorBuilder) => {
         let content = doc.getText(this.current_document_range(doc));
         let lines = [];
         // 全局替换
         content = this.replaceFullNums(content);
         content = this.replaceFullChars(content);
-
         let tag = true;
         // 每行操作
-        lines = content.split("\n").map((line: string) => {
+        lines = content.split("\n").map((line) => {
           line = line.replace(/(.*)[\r\n]$/g, "$1");
           // 忽略代码块
           if (line.trim().search("```") === 0) {
             tag = !tag;
-          } else if (tag) {
+            if (tag) {
+              return line + "\n";
+            }
+            else {
+              return "\n" + line;
+            }
+          }
+          else if (tag) {
             // 修复 markdown 链接所使用的标点。
             line = line.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
             line = line.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
@@ -68,41 +75,40 @@ class DocumentFormatter {
               line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
               line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
               // 标题前后加入空行
-              line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n\n");
+              line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
             }
           }
           return line;
         });
         let i = 1;
         content = "";
-        lines.forEach(line => {
+        lines.join("\n").split("\n").forEach(line => {
           if (line.trim().length === 0) {
+            if (i == 0) {
+              content += "\n";
+            }
             i += 1;
-          } else {
+          }
+          else {
             i = 0;
           }
-          if (i <= 1) {
-            if (line.trim().length === 0) {
-              content += line.replace(/(.*)[\r\n]$/g, "$1")
-            } else {
-              content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
-            }
+          if (i == 0) {
+            content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
           }
         });
+        content = content.trim() + "\n";
         editorBuilder.replace(this.current_document_range(doc), content);
       });
     }
   }
-
-  protected current_document_range(doc: vscode.TextDocument) {
+  current_document_range(doc) {
     // 当前文档范围
     let start = new vscode.Position(0, 0);
     let end = new vscode.Position(doc.lineCount - 1, doc.lineAt(doc.lineCount - 1).text.length);
     let range = new vscode.Range(start, end);
     return range;
   }
-
-  protected replacePunctuations(content: string) {
+  replacePunctuations(content) {
     // 汉字后的标点符号，转成全角符号。
     content = content.replace(/([\u4e00-\u9fa5\u3040-\u30FF])\.($|\s*)/g, '$1。');
     content = content.replace(/([\u4e00-\u9fa5\u3040-\u30FF]),\s*/g, '$1，');
@@ -125,8 +131,7 @@ class DocumentFormatter {
     content = content.replace(/([。，；：、“”『』〖〗《》])\1{1,}/g, '$1');
     return content;
   }
-
-  protected replaceFullNums(content: string) {
+  replaceFullNums(content) {
     // 全角数字。
     content = content.replace("０", "0");
     content = content.replace("１", "1");
@@ -140,8 +145,7 @@ class DocumentFormatter {
     content = content.replace("９", "9");
     return content;
   }
-
-  protected replaceFullChars(content: string) {
+  replaceFullChars(content) {
     // 全角英文和标点。
     content = content.replace("Ａ", "A");
     content = content.replace("Ｂ", "B");
@@ -195,7 +199,6 @@ class DocumentFormatter {
     content = content.replace("ｘ", "x");
     content = content.replace("ｙ", "y");
     content = content.replace("ｚ", "z");
-
     content = content.replace("＠", "@");
     return content;
   }
