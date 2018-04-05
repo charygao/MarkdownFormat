@@ -75,7 +75,9 @@ class DocumentFormatter {
               line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
               line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
               // 标题前后加入空行
-              line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
+              if (line.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
+                line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
+              }
             }
           }
           return line;
