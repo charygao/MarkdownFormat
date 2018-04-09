@@ -2,7 +2,7 @@
   "name": "markdownformat",
   "displayName": "MarkdownFormat",
   "description": "MD格式化-我自己用的，还不是很稳定哦！",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "liushilive",
   "engines": {
     "vscode": "^1.21.0"
@@ -27,7 +27,7 @@
       "editor/context": [
         {
           "command": "extension.reFormat",
-          "when": "editorLangId == markdown",
+          "when": "editorLangId == markdown && !editorReadonly",
           "group": "navigation"
         }
       ]
