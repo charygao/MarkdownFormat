@@ -2,6 +2,8 @@
 
 MD 格式化
 
+<https://marketplace.visualstudio.com/items?itemName=liushilive.markdownformat>
+
 我自己用的挺好的，主要用于格式化 MD 文档如果你有其他的想法可以告诉我。
 
 * 标题前后加入空行
