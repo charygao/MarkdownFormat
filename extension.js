@@ -42,17 +42,23 @@ class DocumentFormatter {
       if (editor === undefined) {
         return;
       }
+      // 获取配置
+      const config = vscode.workspace.getConfiguration("MarkdownFormat");
       // 按照每行进行搞定
       editor.edit((editorBuilder) => {
         let content = doc.getText(this.current_document_range(doc));
         let lines = [];
         // 全局替换
-        content = this.replaceFullNums(content);
-        content = this.replaceFullChars(content);
+        if (config.get("replaceFullNums")) {
+          content = this.replaceFullNums(content);
+        }
+        if (config.get("replaceFullChars")) {
+          content = this.replaceFullChars(content);
+        }
         let tag = true;
         // 每行操作
         lines = content.split("\n").map((line) => {
-          line = line.replace(/(.*)[\r\n]$/g, "$1").replace(/(\s*$)/g,"");
+          line = line.replace(/(.*)[\r\n]$/g, "$1").replace(/(\s*$)/g, "");
           // 忽略代码块
           if (line.trim().search("```") === 0) {
             tag = !tag;
@@ -64,26 +70,34 @@ class DocumentFormatter {
             }
           }
           else if (tag) {
-            // 修复 markdown 链接所使用的标点。
-            line = line.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
-            line = line.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
+            if (config.get("line")) {
+              // 修复 markdown 链接所使用的标点。
+              line = line.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
+              line = line.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
+            }
             // 忽略链接格式
-            if (!line.match(/(\[.*\])(\(.*\))/g) && tag) {
+            if (!line.match(/(\[.*\])(\(.*\))/g) && !line.match(/(^\s*<.*>$)/g)) {
               // 汉字后的标点符号，转成全角符号。
-              line = this.replacePunctuations(line);
-              // 汉字与其前后的英文字符、英文标点、数字间增加空白。
-              line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
-              line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
+              if (config.get("replacePunctuations")) {
+                line = this.replacePunctuations(line);
+              }
+              if (config.get("cn")) {
+                // 汉字与其前后的英文字符、英文标点、数字间增加空白。
+                line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
+                line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
+              }
               // 标题处理
-              if (line.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
-                // 标题后加入一个空格
-                if (line.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
-                  line = line.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
-                } else {
-                  line = line.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
+              if (config.get("title")) {
+                if (line.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
+                  // 标题后加入一个空格
+                  if (line.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
+                    line = line.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
+                  } else {
+                    line = line.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
+                  }
+                  // 标题前后加入空行
+                  line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
                 }
-                // 标题前后加入空行
-                line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
               }
             }
           }
