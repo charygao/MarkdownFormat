@@ -2,13 +2,13 @@
   "name": "markdownformat",
   "displayName": "MarkdownFormat",
   "description": "MD格式化-我自己用的，还不是很稳定哦！",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "liushilive",
   "engines": {
     "vscode": "^1.21.0"
   },
   "categories": [
-    "Languages",
+    "Programming Languages",
     "Formatters",
     "Other"
   ],

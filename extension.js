@@ -52,7 +52,7 @@ class DocumentFormatter {
         let tag = true;
         // 每行操作
         lines = content.split("\n").map((line) => {
-          line = line.replace(/(.*)[\r\n]$/g, "$1");
+          line = line.replace(/(.*)[\r\n]$/g, "$1").replace(/(\s*$)/g,"");
           // 忽略代码块
           if (line.trim().search("```") === 0) {
             tag = !tag;
@@ -74,8 +74,15 @@ class DocumentFormatter {
               // 汉字与其前后的英文字符、英文标点、数字间增加空白。
               line = line.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
               line = line.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
-              // 标题前后加入空行
+              // 标题处理
               if (line.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
+                // 标题后加入一个空格
+                if (line.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
+                  line = line.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
+                } else {
+                  line = line.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
+                }
+                // 标题前后加入空行
                 line = line.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
               }
             }
