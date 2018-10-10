@@ -32,6 +32,8 @@ MD 格式化 插件
 
 * 保持代码块不受影响，代码块前后增加一空行 ` ``` `
 
+* `<!-- -->` 注释前后增加一空行
+
 * 保持链接原样不受影响  `()[]`
 
 ## 配置
@@ -56,7 +58,10 @@ MD 格式化 插件
   "MarkdownFormat.replacePunctuations": true,
 
   // 标题处理：标题后加入一个空格、标题前后加入空行
-  "MarkdownFormat.title": true
+  "MarkdownFormat.title": true,
+
+  // 注释处理：注释前后加入空行
+  "MarkdownFormat.note": true
 }
 ```
 
@@ -73,5 +78,9 @@ MD 格式化 插件
 ```
 
 <liushilive@outlook.com>
+
+## 更改
+
+* 0.0.9 版本新增 `<!-- -->` 注释前后增加一空行
 
 **Enjoy!**

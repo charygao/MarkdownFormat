@@ -1,87 +1,88 @@
 {
-  "name": "markdownformat",
-  "displayName": "MarkdownFormat",
-  "description": "MD格式化-我自己用的，还不是很稳定哦！",
-  "version": "0.0.8",
-  "publisher": "liushilive",
-  "engines": {
-    "vscode": "^1.21.0"
-  },
-  "categories": [
-    "Programming Languages",
-    "Formatters",
-    "Other"
-  ],
-  "activationEvents": [
-    "onLanguage:markdown"
-  ],
-  "main": "./extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "extension.reFormat",
-        "title": "MarkdownFormat : 格式化MD"
-      }
-    ],
-    "menus": {
-      "editor/context": [
-        {
-          "command": "extension.reFormat",
-          "when": "editorLangId == markdown && !editorReadonly",
-          "group": "navigation"
-        }
-      ]
+    "name": "markdownformat",
+    "displayName": "MarkdownFormat",
+    "description": "MD格式化-我自己用的，还不是很稳定哦！",
+    "version": "0.0.9",
+    "publisher": "liushilive",
+    "engines": {
+        "vscode": "^1.21.0"
     },
-    "configuration": {
-      "type": "object",
-      "title": "MarkdownFormat 配置",
-      "properties": {
-        "MarkdownFormat.replaceFullNums": {
-          "type": "boolean",
-          "default": true,
-          "description": "全角数字替换为半角"
+    "categories": [
+        "Programming Languages",
+        "Formatters",
+        "Other"
+    ],
+    "activationEvents": [
+        "onLanguage:markdown"
+    ],
+    "main": "./extension",
+    "contributes": {
+        "commands": [{
+            "command": "extension.reFormat",
+            "title": "MarkdownFormat : 格式化MD"
+        }],
+        "menus": {
+            "editor/context": [{
+                "command": "extension.reFormat",
+                "when": "editorLangId == markdown && !editorReadonly",
+                "group": "navigation"
+            }]
         },
-        "MarkdownFormat.replaceFullChars": {
-          "type": "boolean",
-          "default": true,
-          "description": "全角英文和 @ 符号替换为半角"
-        },
-        "MarkdownFormat.replacePunctuations": {
-          "type": "boolean",
-          "default": true,
-          "description": "汉字后的标点符号，转成全角符号"
-        },
-        "MarkdownFormat.line": {
-          "type": "boolean",
-          "default": true,
-          "description": "修复 markdown 链接所使用的标点"
-        },
-        "MarkdownFormat.cn": {
-          "type": "boolean",
-          "default": true,
-          "description": "汉字与其前后的英文字符、英文标点、数字间增加空白"
-        },
-        "MarkdownFormat.title": {
-          "type": "boolean",
-          "default": true,
-          "description": "标题处理：标题后加入一个空格、标题前后加入空行"
+        "configuration": {
+            "type": "object",
+            "title": "MarkdownFormat 配置",
+            "properties": {
+                "MarkdownFormat.replaceFullNums": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "全角数字替换为半角"
+                },
+                "MarkdownFormat.replaceFullChars": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "全角英文和 @ 符号替换为半角"
+                },
+                "MarkdownFormat.replacePunctuations": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "汉字后的标点符号，转成全角符号"
+                },
+                "MarkdownFormat.line": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "修复 markdown 链接所使用的标点"
+                },
+                "MarkdownFormat.cn": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "汉字与其前后的英文字符、英文标点、数字间增加空白"
+                },
+                "MarkdownFormat.title": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "标题处理：标题后加入一个空格、标题前后加入空行"
+                },
+                "MarkdownFormat.note": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "注释处理：注释前后加入空行"
+                }
+            }
         }
-      }
+    },
+    "scripts": {
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6",
+        "eslint": "^4.11.0",
+        "@types/node": "^7.0.43",
+        "@types/mocha": "^2.2.42"
+    },
+    "repository": {
+        "type": "github",
+        "url": "https://github.com/liushilive/MarkdownFormat"
     }
-  },
-  "scripts": {
-    "postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "node ./node_modules/vscode/bin/test"
-  },
-  "devDependencies": {
-    "typescript": "^2.6.1",
-    "vscode": "^1.1.6",
-    "eslint": "^4.11.0",
-    "@types/node": "^7.0.43",
-    "@types/mocha": "^2.2.42"
-  },
-  "repository": {
-    "type": "github",
-    "url": "https://github.com/liushilive/MarkdownFormat"
-  }
 }
