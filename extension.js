@@ -76,7 +76,7 @@ class DocumentFormatter {
                         if (config.get("note")) {
                             if (line.trim().search(/^<!--.*-->$/) != -1) {
                                 // 注释前后加入空行
-                                line = line.replace(/(^<!--.*-->)([\r\n]*)/, "\n$1\n");
+                                line = line.replace(/(^\s*<!--.*-->)([\r\n]*)/, "\n$1\n");
                             }
                         }
                         // 忽略链接以及注释格式

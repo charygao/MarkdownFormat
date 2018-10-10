@@ -2,7 +2,7 @@
     "name": "markdownformat",
     "displayName": "MarkdownFormat",
     "description": "MD格式化-我自己用的，还不是很稳定哦！",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "publisher": "liushilive",
     "engines": {
         "vscode": "^1.21.0"
