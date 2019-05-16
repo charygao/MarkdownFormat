@@ -9,16 +9,41 @@ function activate(context) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "MarkdownFormat" is now active!');
+  let documentFormatter = new DocumentFormatter();
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with  registerCommand
   // The commandId parameter must match the command field in package.json
   context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('markdown', {
     provideDocumentFormattingEdits(document) {
-      let result = new DocumentFormatter().updateDocument(document);
+      let content = documentFormatter.updateDocument(document);
       vscode.window.showInformationMessage('MD格式化完毕!');
-      return result;
+      return [new vscode.TextEdit(documentFormatter.current_document_range(document), content)];
     }
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('extension.reFormat', () => {
+    let editor = vscode.window.activeTextEditor;
+    if (editor === undefined) {
+      return;
+    }
+    let doc = editor.document;
+
+    // Only update status if an Markdown file
+    if (doc.languageId !== "markdown") {
+      return;
+    }
+    editor = vscode.window.activeTextEditor;
+    if (editor === undefined) {
+      return;
+    }
+
+    let content = documentFormatter.updateDocument(doc);
+    editor.edit((editorBuilder) => {
+      editorBuilder.replace(documentFormatter.current_document_range(doc), content);
+    });
+    // Display a message box to the user
+    vscode.window.showInformationMessage('MD格式化完毕!');
   }));
 }
 exports.activate = activate;
@@ -32,8 +57,7 @@ class DocumentFormatter {
     // 获取配置
     const config = vscode.workspace.getConfiguration("MarkdownFormat");
     // 按照每行进行搞定
-    let range = this.current_document_range(document);
-    let content = document.getText(range);
+    let content = document.getText(this.current_document_range(document));
     let lines = [];
     // 全局替换
     if (config.get("replaceFullNums")) {
@@ -119,7 +143,7 @@ class DocumentFormatter {
       }
     });
     content = content.trim() + "\n";
-    return [new vscode.TextEdit(range, content)];
+    return content;
   }
   current_document_range(doc) {
     // 当前文档范围
