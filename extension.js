@@ -9,18 +9,42 @@ function activate(context) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "MarkdownFormat" is now active!');
+  let documentFormatter = new DocumentFormatter();
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with  registerCommand
   // The commandId parameter must match the command field in package.json
-  let disposable = vscode.commands.registerCommand('extension.reFormat', () => {
-    // The code you place here will be executed every time your command is executed
-    new DocumentFormatter().updateDocument();
+  context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('markdown', {
+    provideDocumentFormattingEdits(document) {
+      let content = documentFormatter.updateDocument(document);
+      vscode.window.showInformationMessage('MD格式化完毕!');
+      return [new vscode.TextEdit(documentFormatter.current_document_range(document), content)];
+    }
+  }));
+
+  context.subscriptions.push(vscode.commands.registerCommand('extension.reFormat', () => {
+    let editor = vscode.window.activeTextEditor;
+    if (editor === undefined) {
+      return;
+    }
+    let doc = editor.document;
+
+    // Only update status if an Markdown file
+    if (doc.languageId !== "markdown") {
+      return;
+    }
+    editor = vscode.window.activeTextEditor;
+    if (editor === undefined) {
+      return;
+    }
+
+    let content = documentFormatter.updateDocument(doc);
+    editor.edit((editorBuilder) => {
+      editorBuilder.replace(documentFormatter.current_document_range(doc), content);
+    });
     // Display a message box to the user
     vscode.window.showInformationMessage('MD格式化完毕!');
-  });
-
-  context.subscriptions.push(disposable);
+  }));
 }
 exports.activate = activate;
 
@@ -29,111 +53,97 @@ function deactivate() { }
 exports.deactivate = deactivate;
 
 class DocumentFormatter {
-  updateDocument() {
-    let editor = vscode.window.activeTextEditor;
-    if (editor === undefined) {
-      return;
+  updateDocument(document) {
+    // 获取配置
+    const config = vscode.workspace.getConfiguration("MarkdownFormat");
+    // 按照每行进行搞定
+    let content = document.getText(this.current_document_range(document));
+    let lines = [];
+    // 全局替换
+    if (config.get("replaceFullNums")) {
+      content = this.replaceFullNums(content);
     }
-    let doc = editor.document;
-    // Only update status if an Markdown file
-    if (doc.languageId === "markdown") {
-      let editor = vscode.window.activeTextEditor;
-      if (editor === undefined) {
-        return;
-      }
-      // 获取配置
-      const config = vscode.workspace.getConfiguration("MarkdownFormat");
-      // 按照每行进行搞定
-      editor.edit((editorBuilder) => {
-        let content = doc.getText(this.current_document_range(doc));
-        let lines = [];
-        // 全局替换
-        if (config.get("replaceFullNums")) {
-          content = this.replaceFullNums(content);
+    if (config.get("replaceFullChars")) {
+      content = this.replaceFullChars(content);
+    }
+    let tag = true;
+    // 每行操作
+    lines = content.split("\n").map((line) => {
+      line = line.replace(/(.*)[\r\n]$/g, "$1").replace(/(\s*$)/g, "");
+      // 忽略代码块
+      if (line.trim().search("```") === 0) {
+        tag = !tag;
+        if (tag) {
+          return line + "\n";
+        } else {
+          return "\n" + line;
         }
-        if (config.get("replaceFullChars")) {
-          content = this.replaceFullChars(content);
-        }
-        let tag = true;
-        // 每行操作
-        lines = content.split("\n").map((line) => {
-          line = line.replace(/(.*)[\r\n]$/g, "$1").replace(/(\s*$)/g, "");
-          // 忽略代码块
-          if (line.trim().search("```") === 0) {
-            tag = !tag;
-            if (tag) {
-              return line + "\n";
-            } else {
-              return "\n" + line;
+      } else if (tag) {
+        let line_tmp = "";
+        line.split(/(`.*?`)/).forEach(element => {
+          if (element.search(/(`.*`)/) == -1) {
+            if (config.get("line")) {
+              // 修复 markdown 链接所使用的标点。
+              element = element.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
+              element = element.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
             }
-          } else if (tag) {
-            let line_tmp = "";
-            line.split(/(`.*?`)/).forEach(element => {
-              if (element.search(/(`.*`)/) == -1) {
-                if (config.get("line")) {
-                  // 修复 markdown 链接所使用的标点。
-                  element = element.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
-                  element = element.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
-                }
-                // 注释处理
-                if (config.get("note")) {
-                  if (element.trim().search(/^<!--.*-->$/) != -1) {
-                    // 注释前后加入空行
-                    element = element.replace(/(^\s*<!--.*-->)([\r\n]*)/, "\n$1\n");
-                  }
-                }
-                // 忽略链接以及注释格式
-                if (!element.match(/(\[.*\])(\(.*\))/g) && !element.match(/(^\s*<.*>$)/g)) {
-                  // 汉字后的标点符号，转成全角符号。
-                  if (config.get("replacePunctuations")) {
-                    element = this.replacePunctuations(element);
-                  }
-                  if (config.get("cn")) {
-                    // 汉字与其前后的英文字符、英文标点、数字间增加空白。
-                    element = element.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
-                    element = element.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
-                  }
-                  // 标题处理
-                  if (config.get("title")) {
-                    if (element.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
-                      // 标题后加入一个空格
-                      if (element.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
-                        element = element.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
-                      } else {
-                        element = element.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
-                      }
-                      // 标题前后加入空行
-                      element = element.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
-                    }
-                  }
-                }
-
+            // 注释处理
+            if (config.get("note")) {
+              if (element.trim().search(/^<!--.*-->$/) != -1) {
+                // 注释前后加入空行
+                element = element.replace(/(^\s*<!--.*-->)([\r\n]*)/, "\n$1\n");
               }
-              line_tmp += element;
-            });
-            line = line_tmp;
-          }
-          return line;
-        });
-        let i = 1;
-        content = "";
-        lines.join("\n").split("\n").forEach(line => {
-          if (line.trim().length === 0) {
-            if (i == 0) {
-              content += "\n";
             }
-            i += 1;
-          } else {
-            i = 0;
+            // 忽略链接以及注释格式
+            if (!element.match(/(\[.*\])(\(.*\))/g) && !element.match(/(^\s*<.*>$)/g)) {
+              // 汉字后的标点符号，转成全角符号。
+              if (config.get("replacePunctuations")) {
+                element = this.replacePunctuations(element);
+              }
+              if (config.get("cn")) {
+                // 汉字与其前后的英文字符、英文标点、数字间增加空白。
+                element = element.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
+                element = element.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
+              }
+              // 标题处理
+              if (config.get("title")) {
+                if (element.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
+                  // 标题后加入一个空格
+                  if (element.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
+                    element = element.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
+                  } else {
+                    element = element.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
+                  }
+                  // 标题前后加入空行
+                  element = element.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
+                }
+              }
+            }
+
           }
-          if (i == 0) {
-            content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
-          }
+          line_tmp += element;
         });
-        content = content.trim() + "\n";
-        editorBuilder.replace(this.current_document_range(doc), content);
-      });
-    }
+        line = line_tmp;
+      }
+      return line;
+    });
+    let i = 1;
+    content = "";
+    lines.join("\n").split("\n").forEach(line => {
+      if (line.trim().length === 0) {
+        if (i == 0) {
+          content += "\n";
+        }
+        i += 1;
+      } else {
+        i = 0;
+      }
+      if (i == 0) {
+        content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
+      }
+    });
+    content = content.trim() + "\n";
+    return content;
   }
   current_document_range(doc) {
     // 当前文档范围
