@@ -17,7 +17,7 @@ function activate(context) {
     provideDocumentFormattingEdits(document) {
       let result = new DocumentFormatter().updateDocument(document);
       vscode.window.showInformationMessage('MD格式化完毕!');
-      return result
+      return result;
     }
   }));
 }
@@ -32,7 +32,7 @@ class DocumentFormatter {
     // 获取配置
     const config = vscode.workspace.getConfiguration("MarkdownFormat");
     // 按照每行进行搞定
-    let range = this.current_document_range(document)
+    let range = this.current_document_range(document);
     let content = document.getText(range);
     let lines = [];
     // 全局替换
