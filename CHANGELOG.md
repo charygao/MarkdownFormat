@@ -7,4 +7,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Initial release
-- Follow the [formatters best practices](https://code.visualstudio.com/blogs/2016/11/15/formatters-best-practices)
+- 0.0.10 版本 新增 `<!-- -->` 注释前后增加一空行
+- 0.0.11 版本 忽略行内代码格式化
+- 0.0.12 版本 添加文件格式化绑定
