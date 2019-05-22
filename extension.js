@@ -53,19 +53,15 @@ function deactivate() { }
 exports.deactivate = deactivate;
 
 class DocumentFormatter {
+  /**
+   * 更新文档
+   */
   updateDocument(document) {
     // 获取配置
     const config = vscode.workspace.getConfiguration("MarkdownFormat");
     // 按照每行进行搞定
     let content = document.getText(this.current_document_range(document));
     let lines = [];
-    // 全局替换
-    if (config.get("replaceFullNums")) {
-      content = this.replaceFullNums(content);
-    }
-    if (config.get("replaceFullChars")) {
-      content = this.replaceFullChars(content);
-    }
     let tag = true;
     // 每行操作
     lines = content.split("\n").map((line) => {
@@ -79,54 +75,67 @@ class DocumentFormatter {
           return "\n" + line;
         }
       } else if (tag) {
-        let line_tmp = "";
-        line.split(/(`.*?`)/).forEach(element => {
-          if (element.search(/(`.*`)/) == -1) {
-            if (config.get("line")) {
+        // 忽略 @import 语法
+        if (line.trim().search(/^@import /) == -1) {
+          let line_tmp = "";
+          // 使用行中代码块为分割
+          line.split(/(`.*?`)/).forEach(element => {
+            if (element.search(/(`.*`)/) == -1) {
               // 修复 markdown 链接所使用的标点。
-              element = element.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
-              element = element.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
-            }
-            // 注释处理
-            if (config.get("note")) {
-              if (element.trim().search(/^<!--.*-->$/) != -1) {
-                // 注释前后加入空行
-                element = element.replace(/(^\s*<!--.*-->)([\r\n]*)/, "\n$1\n");
+              if (config.get("line")) {
+                element = element.replace(/[『\[]([^』\]]+)[』\]][『\[]([^』\]]+)[』\]]/g, "[$1]($2)");
+                element = element.replace(/[『\[]([^』\]]+)[』\]][（(]([^』)]+)[）)]/g, "[$1]($2)");
               }
-            }
-            // 忽略链接以及注释格式
-            if (!element.match(/(\[.*\])(\(.*\))/g) && !element.match(/(^\s*<.*>$)/g)) {
-              // 汉字后的标点符号，转成全角符号。
-              if (config.get("replacePunctuations")) {
-                element = this.replacePunctuations(element);
+              // 注释处理
+              if (config.get("note")) {
+                if (element.trim().search(/^<!--.*-->$/) != -1) {
+                  // 注释前后加入空行
+                  element = element.replace(/(^\s*<!--.*-->)([\r\n]*)/, "\n$1\n");
+                }
               }
-              if (config.get("cn")) {
+              // 忽略链接以及注释格式
+              if (!element.match(/(\[.*\])(\(.*\))/g) && !element.match(/(^\s*<.*>$)/g)) {
+                // 替换全角数字
+                if (config.get("replaceFullNums")) {
+                  content = this.replaceFullNums(content);
+                }
+                // 替换全角英文和标点
+                if (config.get("replaceFullChars")) {
+                  content = this.replaceFullChars(content);
+                }
+                // 汉字后的标点符号，转成全角符号。
+                if (config.get("replacePunctuations")) {
+                  element = this.replacePunctuations(element);
+                }
                 // 汉字与其前后的英文字符、英文标点、数字间增加空白。
-                element = element.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
-                element = element.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
-              }
-              // 标题处理
-              if (config.get("title")) {
-                if (element.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
-                  // 标题后加入一个空格
-                  if (element.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
-                    element = element.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
-                  } else {
-                    element = element.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
-                  }
-                  // 标题前后加入空行
-                  element = element.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
+                if (config.get("cn")) {
+                  element = element.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
+                  element = element.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
                 }
               }
             }
-
+            line_tmp += element;
+          });
+          // 标题处理
+          if (config.get("title")) {
+            if (line_tmp.trim().search(/(^#{1,6}.*)([\r\n]*)/) != -1) {
+              // 标题后加入一个空格
+              if (line_tmp.trim().search(/(^#{1,6}\s+)([\r\n]*)/) == -1) {
+                line_tmp = line_tmp.trim().replace(/(^#{1,6})(.*)/, "$1 $2");
+              } else {
+                line_tmp = line_tmp.trim().replace(/(^#{1,6})\s+(.*)/, "$1 $2");
+              }
+              // 标题前后加入空行
+              line_tmp = line_tmp.trim().replace(/(^#{1,6}.*)([\r\n]*)/, "\n$1\n");
+            }
           }
-          line_tmp += element;
-        });
-        line = line_tmp;
+          line = line_tmp;
+        }
+
       }
       return line;
     });
+
     let i = 1;
     content = "";
     lines.join("\n").split("\n").forEach(line => {
@@ -145,13 +154,18 @@ class DocumentFormatter {
     content = content.trim() + "\n";
     return content;
   }
+  /**
+   * 当前文档范围
+   */
   current_document_range(doc) {
-    // 当前文档范围
     let start = new vscode.Position(0, 0);
     let end = new vscode.Position(doc.lineCount - 1, doc.lineAt(doc.lineCount - 1).text.length);
     let range = new vscode.Range(start, end);
     return range;
   }
+  /**
+   * 替换汉字后标点
+   */
   replacePunctuations(content) {
     // 汉字后的标点符号，转成全角符号。
     content = content.replace(/([\u4e00-\u9fa5\u3040-\u30FF])\.($|\s*)/g, '$1。');
@@ -175,8 +189,10 @@ class DocumentFormatter {
     content = content.replace(/([。，；：、“”『』〖〗《》])\1{1,}/g, '$1');
     return content;
   }
+  /**
+   * 替换全角数字
+   */
   replaceFullNums(content) {
-    // 全角数字。
     content = content.replace("０", "0");
     content = content.replace("１", "1");
     content = content.replace("２", "2");
@@ -189,6 +205,9 @@ class DocumentFormatter {
     content = content.replace("９", "9");
     return content;
   }
+  /**
+   * 替换全角英文和标点
+   */
   replaceFullChars(content) {
     // 全角英文和标点。
     content = content.replace("Ａ", "A");
