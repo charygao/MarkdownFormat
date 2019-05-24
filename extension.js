@@ -17,7 +17,6 @@ function activate(context) {
   context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('markdown', {
     provideDocumentFormattingEdits(document) {
       let content = documentFormatter.updateDocument(document);
-      vscode.window.showInformationMessage('MD格式化完毕!');
       return [new vscode.TextEdit(documentFormatter.current_document_range(document), content)];
     }
   }));
