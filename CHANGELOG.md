@@ -14,3 +14,5 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   * 新增：忽略 `@import` 语法格式化
   * 修改：忽略注释、代码块中的格式化
   * 修复：标题中存在行内代码导致错误换行
+* 0.0.14 版本
+  * 去除格式化提示
