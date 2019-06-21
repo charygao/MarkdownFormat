@@ -16,3 +16,5 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   * 修复：标题中存在行内代码导致错误换行
 * 0.0.14 版本
   * 去除格式化提示
+* 0.0.15 版本
+  * 去除代码片段多行精简，保留代码原有格式

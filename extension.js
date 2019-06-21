@@ -8,7 +8,7 @@ function activate(context) {
 
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "MarkdownFormat" is now active!');
+  console.log('"MarkdownFormat" 现在已激活!');
   let documentFormatter = new DocumentFormatter();
 
   // The command has been defined in the package.json file
@@ -137,17 +137,30 @@ class DocumentFormatter {
 
     let i = 1;
     content = "";
+    tag = true;
     lines.join("\n").split("\n").forEach(line => {
-      if (line.trim().length === 0) {
-        if (i == 0) {
-          content += "\n";
+      if (line.trim().search("```") === 0) {
+        tag = !tag;
+        if (tag) {
+          content += line + "\n";
+        } else {
+          content += line + "\n";
         }
-        i += 1;
-      } else {
         i = 0;
-      }
-      if (i == 0) {
-        content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
+      } else if (tag) {
+        if (line.trim().length === 0) {
+          if (i == 0) {
+            content += "\n";
+          }
+          i += 1;
+        } else {
+          i = 0;
+        }
+        if (i == 0) {
+          content += line.replace(/(.*)[\r\n]$/g, "$1") + "\n";
+        }
+      } else {
+        content += line + "\n";
       }
     });
     content = content.trim() + "\n";
