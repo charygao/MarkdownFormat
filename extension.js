@@ -111,6 +111,11 @@ class DocumentFormatter {
                   element = element.replace(/([\u4e00-\u9fa5\u3040-\u30FF])([a-zA-Z0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
                   element = element.replace(/([a-zA-Z0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([\u4e00-\u9fa5\u3040-\u30FF])/g, "$1 $2");
                 }
+                // 英文与其前后的英文标点、数字间增加空白。
+                if (config.get("en")) {
+                  element = element.replace(/([a-zA-Z])([0-9@&=\[\$\%\^\-\+(\/\\])/g, '$1 $2');
+                  element = element.replace(/([0-9!&;=\]\,\.\:\?\$\%\^\-\+\)\/\\])([a-zA-Z])/g, "$1 $2");
+                }
               }
             }
             line_tmp += element;

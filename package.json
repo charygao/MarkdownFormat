@@ -2,7 +2,7 @@
     "name": "markdownformat",
     "displayName": "MarkdownFormat",
     "description": "MD格式化-我自己用的！",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "publisher": "liushilive",
     "engines": {
         "vscode": "^1.21.0"
@@ -60,6 +60,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "汉字与其前后的英文字符、英文标点、数字间增加空白"
+                },
+                "MarkdownFormat.en": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "英文与其前后的英文标点、数字间增加空白"
                 },
                 "MarkdownFormat.title": {
                     "type": "boolean",

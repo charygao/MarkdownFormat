@@ -18,3 +18,5 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   * 去除格式化提示
 * 0.0.15 版本
   * 去除代码片段多行精简，保留代码原有格式
+* 0.0.16 版本
+  * 英文与与其前后的英文标点、数字间增加空白
